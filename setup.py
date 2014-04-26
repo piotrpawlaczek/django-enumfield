@@ -103,6 +103,9 @@ setup(
         'Topic :: Utilities',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
+    install_requires=[
+        'enum34',
+    ],
     cmdclass=cmdclasses,
     data_files=data_files,
     packages=packages,

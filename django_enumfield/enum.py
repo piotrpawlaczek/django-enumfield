@@ -1,4 +1,6 @@
 import logging
+from enum import Enum as BaseEnum, EnumMeta as BaseEnumMeta
+
 from django.utils.translation import ugettext_lazy as _
 from django_enumfield.db.fields import EnumField
 
@@ -9,13 +11,13 @@ def translate(name):
 logger = logging.getLogger(__name__)
 
 
-class EnumType(type):
+class EnumMeta(BaseEnumMeta):
 
     def __new__(cls, *args, **kwargs):
         """
         Create enum values from all uppercase class attributes and store them in a dict on the Enum class.
         """
-        enum = super(EnumType, cls).__new__(cls, *args, **kwargs)
+        enum = super(EnumMeta, cls).__new__(cls, *args, **kwargs)
         attributes = filter(lambda (k, v): k.isupper(), enum.__dict__.iteritems())
         enum.values = {}
         for attribute in attributes:
@@ -23,7 +25,7 @@ class EnumType(type):
         return enum
 
 
-class Enum(object):
+class Enum(BaseEnum):
     """
     A container for holding and restoring enum values.
     Usage:
@@ -33,38 +35,8 @@ class Enum(object):
             WEISSBIER = 2
     It can also validate enum value transitions by defining the _transitions variable as a dict with transitions.
     """
-    __metaclass__ = EnumType
+    __metaclass__ = EnumMeta
 
-    class Value(object):
-        """
-        A value represents a key value pair with a uppercase name and a integer value:
-        GENDER = 1
-        "name" is a upper case string representing the class attribute
-        "label" is a translatable human readable version of "name"
-        "enum_type" is the value defined for the class attribute
-        """
-        def __init__(self, name, value, enum_type):
-            self.name = name
-            self.label = translate(name)
-            self.value = value
-            self.enum_type = enum_type
-
-        def __unicode__(self):
-            return unicode(self.label)
-
-        def __str__(self):
-            return self.label
-
-        def __repr__(self):
-            return self.label
-
-        def __eq__(self, other):
-            if other and isinstance(other, Enum.Value):
-                return self.value == other.value
-            elif isinstance(other, basestring):
-                return type(other)(self.value) == other
-            else:
-                raise TypeError('Can not compare Enum with %s' % other.__class__.__name__)
 
     @classmethod
     def choices(cls):
